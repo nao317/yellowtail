@@ -1,87 +1,127 @@
 # ポートフォリオサイト
 
-Reactで実装するポートフォリオサイトの、初期設計メモです。
+Next.js App Router で実装する前提の初期設計書です。
 
 ## 機能
 
 - プロフィール表示
-- 投稿機能（admin 1人のみ）
 - 投稿一覧表示
 - 投稿詳細表示
+- 投稿作成・編集・削除（admin 1人のみ）
 
 ## 設計
 
 ### 1. 全体方針
 
-- フロントエンドは React + TypeScript を採用
-- UIとビジネスロジックを分離し、画面単位ではなく機能単位でディレクトリを分ける
-- データ取得・更新はAPI層に集約し、コンポーネントから直接 fetch を呼ばない
-- 管理者認証は「単一ユーザー前提」のシンプル設計にする
+- Next.js App Router + TypeScript を採用
+- 公開ページは可能な限り Server Component で描画し、初期表示速度とSEOを優先
+- 投稿作成やフォーム操作など対話が多い箇所だけ Client Component を使う
+- APIアクセスは Route Handler 経由に統一し、画面側は直接DBに触れない
+- 管理者認証は単一アカウント前提でシンプルに保つ
 
 ### 2. 技術スタック（想定）
 
+- Next.js（App Router）
 - React
 - TypeScript
-- Vite
-- React Router
-- TanStack Query（サーバーデータ管理）
-- Zod（フォーム・APIレスポンスのバリデーション）
-- CSS Modules または Tailwind CSS（どちらかに統一）
+- Tailwind CSS または CSS Modules（どちらかに統一）
+- Zod（バリデーション）
+- Prisma または Drizzle（DBアクセス）
+- Vitest + Testing Library（単体/コンポーネントテスト）
+- Playwright（E2E）
 
-### 3. 画面設計
+### 3. ルーティング設計（App Router）
 
-- ホーム（プロフィール + 最新投稿）
-- 投稿一覧ページ
-- 投稿詳細ページ
-- 管理者ログインページ
-- 管理者ダッシュボード（投稿作成・編集・削除）
+- /
+	- ホーム（プロフィール + 最新投稿）
+- /posts
+	- 投稿一覧
+- /posts/[slug]
+	- 投稿詳細
+- /admin/login
+	- 管理者ログイン
+- /admin/posts
+	- 投稿管理一覧
+- /admin/posts/new
+	- 投稿作成
+- /admin/posts/[id]/edit
+	- 投稿編集
+
+管理系ページは middleware で認証チェックし、未認証の場合は /admin/login にリダイレクトする。
 
 ### 4. 認証設計（admin 1人）
 
-- 前提: 管理者は1アカウントのみ
-- ログイン成功後、アクセストークンを保存（httpOnly Cookie推奨）
-- フロント側では認証状態を AuthContext で管理
-- 管理者画面は ProtectedRoute でガード
-- 一般公開ページは未ログインでも閲覧可能
+- 前提: 管理者アカウントは1つのみ
+- ログイン成功時に httpOnly Cookie へセッション情報を保存
+- Cookieの検証は server 側で実施（middleware + Route Handler）
+- クライアント側の状態管理は最小化し、認証判定は server 基準にする
+- CSRF対策として SameSite 設定と Origin チェックを行う
 
 ### 5. データモデル（最小）
 
 - User
 	- id
 	- username
+	- passwordHash
 	- role（admin固定）
+	- createdAt
 
 - Post
 	- id
 	- title
 	- slug
+	- excerpt
 	- content
 	- thumbnailUrl
+	- isPublished
 	- publishedAt
 	- updatedAt
-	- isPublished
 
-### 6. データフロー
+### 6. データ取得と更新
 
-- 画面コンポーネントは hooks を通じてデータを取得
-- hooks は services/api を利用して通信
-- APIレスポンスは schema で検証
-- 正規化や表示変換は mappers で吸収
+- 公開ページ
+	- Server Component で直接サービス層を呼び出し、SSRで描画
+- 管理ページ
+	- 投稿作成/更新/削除は Server Action または /api/admin/* Route Handler で実行
+- バリデーション
+	- 入力値とAPI入出力は Zod で検証
+- キャッシュ
+	- 投稿更新時に revalidatePath を実行して一覧・詳細を再生成
 
-### 7. エラーハンドリング方針
+### 7. API設計（Route Handler）
 
-- APIエラーは共通の ApiError 型に統一
-- 401: ログイン画面へ誘導
-- 403: 権限不足メッセージ表示
-- 500: 再試行UI + 通知
+- POST /api/auth/login
+	- ログイン処理
+- POST /api/auth/logout
+	- ログアウト処理
+- GET /api/posts
+	- 公開投稿一覧
+- GET /api/posts/[slug]
+	- 投稿詳細
+- POST /api/admin/posts
+	- 投稿作成（要認証）
+- PATCH /api/admin/posts/[id]
+	- 投稿更新（要認証）
+- DELETE /api/admin/posts/[id]
+	- 投稿削除（要認証）
 
-### 8. テスト方針（最初の粒度）
+### 8. エラーハンドリング方針
 
-- 単体テスト: utils / hooks
-- コンポーネントテスト: 主要画面の描画と操作
-- E2E: ログイン -> 投稿作成 -> 公開確認の最短導線
+- 入力エラーは 400 系で返却し、フォーム項目ごとに表示
+- 未認証は 401、権限不足は 403
+- 想定外エラーは 500 とし、UIでは共通メッセージを表示
+- app/error.tsx と app/not-found.tsx を実装して体験を統一
 
-## ファイル構造（案）
+### 9. テスト方針
+
+- 単体テスト
+	- lib, services, validation
+- コンポーネントテスト
+	- 管理フォーム、投稿カード
+- E2E
+	- ログイン -> 投稿作成 -> 公開ページで表示確認
+
+## ファイル構造（App Router 案）
 
 ```text
 .
@@ -89,66 +129,77 @@ Reactで実装するポートフォリオサイトの、初期設計メモです
 │   └── images/
 ├── src/
 │   ├── app/
-│   │   ├── App.tsx
-│   │   ├── providers/
-│   │   │   ├── QueryProvider.tsx
-│   │   │   └── AuthProvider.tsx
-│   │   └── router/
-│   │       ├── index.tsx
-│   │       └── ProtectedRoute.tsx
-│   ├── pages/
-│   │   ├── HomePage.tsx
-│   │   ├── PostsPage.tsx
-│   │   ├── PostDetailPage.tsx
-│   │   ├── AdminLoginPage.tsx
-│   │   └── AdminDashboardPage.tsx
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   ├── error.tsx
+│   │   ├── not-found.tsx
+│   │   ├── posts/
+│   │   │   ├── page.tsx
+│   │   │   └── [slug]/
+│   │   │       └── page.tsx
+│   │   ├── admin/
+│   │   │   ├── login/
+│   │   │   │   └── page.tsx
+│   │   │   └── posts/
+│   │   │       ├── page.tsx
+│   │   │       ├── new/
+│   │   │       │   └── page.tsx
+│   │   │       └── [id]/edit/
+│   │   │           └── page.tsx
+│   │   └── api/
+│   │       ├── auth/
+│   │       │   ├── login/route.ts
+│   │       │   └── logout/route.ts
+│   │       ├── posts/
+│   │       │   ├── route.ts
+│   │       │   └── [slug]/route.ts
+│   │       └── admin/posts/
+│   │           ├── route.ts
+│   │           └── [id]/route.ts
 │   ├── features/
-│   │   ├── profile/
-│   │   │   ├── components/
-│   │   │   ├── hooks/
-│   │   │   └── types.ts
 │   │   ├── posts/
 │   │   │   ├── components/
-│   │   │   ├── hooks/
 │   │   │   ├── services/
+│   │   │   ├── actions/
 │   │   │   ├── schemas/
 │   │   │   └── types.ts
-│   │   └── auth/
+│   │   ├── auth/
+│   │   │   ├── services/
+│   │   │   ├── actions/
+│   │   │   ├── schemas/
+│   │   │   └── types.ts
+│   │   └── profile/
 │   │       ├── components/
-│   │       ├── hooks/
 │   │       ├── services/
-│   │       ├── context/
 │   │       └── types.ts
-│   ├── shared/
-│   │   ├── components/
-│   │   │   ├── layout/
-│   │   │   └── ui/
-│   │   ├── lib/
-│   │   │   ├── apiClient.ts
-│   │   │   ├── env.ts
-│   │   │   └── logger.ts
-│   │   ├── constants/
-│   │   ├── styles/
-│   │   └── types/
-│   ├── main.tsx
-│   └── vite-env.d.ts
+│   ├── lib/
+│   │   ├── db.ts
+│   │   ├── auth.ts
+│   │   ├── env.ts
+│   │   └── logger.ts
+│   ├── middleware.ts
+│   └── styles/
+├── prisma/
+│   └── schema.prisma
 ├── .env.example
+├── next.config.ts
 ├── package.json
 ├── tsconfig.json
 └── README.md
 ```
 
-## 命名・実装ルール（初期）
+## 実装ルール（初期）
 
-- 画面は pages、機能差分は features、共通は shared に置く
-- hooks は useXxx 命名、型は types.ts に集約
-- API通信は services 配下で完結させる
-- ルーティング定義は app/router に一元管理
+- app 配下はルート定義とページ責務に限定する
+- ビジネスロジックは features と lib に寄せる
+- 入出力スキーマは features/*/schemas に集約する
+- admin 保護は middleware と server 側チェックを併用する
+- Client Component は本当に必要な箇所だけ use client を付ける
 
 ## 今後の拡張候補
 
-- 下書き保存機能
-- タグ・カテゴリ機能
+- 下書き保存
+- タグ・カテゴリ
 - Markdownエディタ
-- OGP自動生成
+- OGP画像自動生成
 

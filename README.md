@@ -1,6 +1,6 @@
 # ポートフォリオサイト
 
-Next.js App Router で実装する前提の初期設計書です。
+Next.js App Router + Supabase で実装する前提の初期設計書です。
 
 ## 機能
 
@@ -16,8 +16,8 @@ Next.js App Router で実装する前提の初期設計書です。
 - Next.js App Router + TypeScript を採用
 - 公開ページは可能な限り Server Component で描画し、初期表示速度とSEOを優先
 - 投稿作成やフォーム操作など対話が多い箇所だけ Client Component を使う
-- APIアクセスは Route Handler 経由に統一し、画面側は直接DBに触れない
-- 管理者認証は単一アカウント前提でシンプルに保つ
+- データ基盤は Supabase（PostgreSQL + Auth + Storage）を利用
+- 管理者認証は Supabase Auth で単一アカウント運用にする
 
 ### 2. 技術スタック（想定）
 
@@ -25,8 +25,10 @@ Next.js App Router で実装する前提の初期設計書です。
 - React
 - TypeScript
 - Tailwind CSS または CSS Modules（どちらかに統一）
+- Supabase（Database / Auth / Storage）
+- @supabase/supabase-js
+- @supabase/ssr
 - Zod（バリデーション）
-- Prisma または Drizzle（DBアクセス）
 - Vitest + Testing Library（単体/コンポーネントテスト）
 - Playwright（E2E）
 
@@ -52,74 +54,82 @@ Next.js App Router で実装する前提の初期設計書です。
 ### 4. 認証設計（admin 1人）
 
 - 前提: 管理者アカウントは1つのみ
-- ログイン成功時に httpOnly Cookie へセッション情報を保存
-- Cookieの検証は server 側で実施（middleware + Route Handler）
-- クライアント側の状態管理は最小化し、認証判定は server 基準にする
-- CSRF対策として SameSite 設定と Origin チェックを行う
+- Supabase Auth の email/password ログインを使用
+- セッションは @supabase/ssr で Cookie 連携（httpOnly）
+- middleware でセッション検証し、/admin 配下を保護
+- profiles テーブルの role 列で admin 判定する（admin 以外は管理画面拒否）
+- 初期運用では admin ユーザーを1件だけ作成し、追加作成しない
 
-### 5. データモデル（最小）
+### 5. Supabaseセキュリティ設計（RLS）
 
-- User
-	- id
-	- username
-	- passwordHash
-	- role（admin固定）
-	- createdAt
+- posts テーブルは RLS を有効化
+- 公開投稿（is_published = true）は anon で SELECT を許可
+- 投稿の INSERT / UPDATE / DELETE は admin ロールのみ許可
+- profiles は本人参照のみ許可、role更新は service role 経由のみ
+- service role key は Next.js の server 側だけで使用し、client bundle に含めない
 
-- Post
-	- id
-	- title
-	- slug
-	- excerpt
-	- content
-	- thumbnailUrl
-	- isPublished
-	- publishedAt
-	- updatedAt
+### 6. データモデル（最小）
 
-### 6. データ取得と更新
+- profiles
+  - id（auth.users.id と紐づく UUID）
+  - username
+  - role（admin固定）
+  - created_at
+
+- posts
+  - id（UUID）
+  - title
+  - slug（UNIQUE）
+  - excerpt
+  - content
+  - thumbnail_url
+  - is_published
+  - published_at
+  - updated_at
+
+### 7. データ取得と更新
 
 - 公開ページ
-	- Server Component で直接サービス層を呼び出し、SSRで描画
+  - Server Component から Supabase クライアント（server）を利用して取得
 - 管理ページ
-	- 投稿作成/更新/削除は Server Action または /api/admin/* Route Handler で実行
+  - Server Action または Route Handler で CUD 実行
 - バリデーション
-	- 入力値とAPI入出力は Zod で検証
+  - 入力値とAPI入出力は Zod で検証
 - キャッシュ
-	- 投稿更新時に revalidatePath を実行して一覧・詳細を再生成
+  - 投稿更新時に revalidatePath を実行して一覧・詳細を再生成
 
-### 7. API設計（Route Handler）
+### 8. API設計（Route Handler）
 
-- POST /api/auth/login
-	- ログイン処理
-- POST /api/auth/logout
-	- ログアウト処理
+- POST /api/auth/sign-in
+  - Supabase Auth でログイン
+- POST /api/auth/sign-out
+  - ログアウト
 - GET /api/posts
-	- 公開投稿一覧
+  - 公開投稿一覧
 - GET /api/posts/[slug]
-	- 投稿詳細
+  - 投稿詳細
 - POST /api/admin/posts
-	- 投稿作成（要認証）
+  - 投稿作成（要認証 + role=admin）
 - PATCH /api/admin/posts/[id]
-	- 投稿更新（要認証）
+  - 投稿更新（要認証 + role=admin）
 - DELETE /api/admin/posts/[id]
-	- 投稿削除（要認証）
+  - 投稿削除（要認証 + role=admin）
 
-### 8. エラーハンドリング方針
+### 9. エラーハンドリング方針
 
 - 入力エラーは 400 系で返却し、フォーム項目ごとに表示
 - 未認証は 401、権限不足は 403
 - 想定外エラーは 500 とし、UIでは共通メッセージを表示
 - app/error.tsx と app/not-found.tsx を実装して体験を統一
 
-### 9. テスト方針
+### 10. テスト方針
 
 - 単体テスト
-	- lib, services, validation
+  - lib, services, validation
 - コンポーネントテスト
-	- 管理フォーム、投稿カード
+  - 管理フォーム、投稿カード
 - E2E
-	- ログイン -> 投稿作成 -> 公開ページで表示確認
+  - ログイン -> 投稿作成 -> 公開ページで表示確認
 
 ## ファイル構造（App Router 案）
 
@@ -148,8 +158,8 @@ Next.js App Router で実装する前提の初期設計書です。
 │   │   │           └── page.tsx
 │   │   └── api/
 │   │       ├── auth/
-│   │       │   ├── login/route.ts
-│   │       │   └── logout/route.ts
+│   │       │   ├── sign-in/route.ts
+│   │       │   └── sign-out/route.ts
 │   │       ├── posts/
 │   │       │   ├── route.ts
 │   │       │   └── [slug]/route.ts
@@ -173,14 +183,19 @@ Next.js App Router で実装する前提の初期設計書です。
 │   │       ├── services/
 │   │       └── types.ts
 │   ├── lib/
-│   │   ├── db.ts
+│   │   ├── supabase/
+│   │   │   ├── client.ts
+│   │   │   ├── server.ts
+│   │   │   ├── middleware.ts
+│   │   │   └── admin.ts
 │   │   ├── auth.ts
 │   │   ├── env.ts
 │   │   └── logger.ts
 │   ├── middleware.ts
 │   └── styles/
-├── prisma/
-│   └── schema.prisma
+├── supabase/
+│   ├── migrations/
+│   └── seed.sql
 ├── .env.example
 ├── next.config.ts
 ├── package.json
@@ -195,6 +210,10 @@ Next.js App Router で実装する前提の初期設計書です。
 - 入出力スキーマは features/*/schemas に集約する
 - admin 保護は middleware と server 側チェックを併用する
 - Client Component は本当に必要な箇所だけ use client を付ける
+- Supabase key は用途を分離する
+	- NEXT_PUBLIC_SUPABASE_URL
+	- NEXT_PUBLIC_SUPABASE_ANON_KEY
+	- SUPABASE_SERVICE_ROLE_KEY（server only）
 
 ## 今後の拡張候補
 
@@ -202,4 +221,3 @@ Next.js App Router で実装する前提の初期設計書です。
 - タグ・カテゴリ
 - Markdownエディタ
 - OGP画像自動生成
-

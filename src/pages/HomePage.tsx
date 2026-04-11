@@ -20,7 +20,7 @@ async function fetchAdminProfile(): Promise<Profile | null> {
 
     return {
         id: data.id,
-        username: data.role,
+        username: data.username,
         role: data.role,
         createdAt: data.created_at,
     }
@@ -39,7 +39,7 @@ export default function HomePage() {
     return (
         <main className="home">
             <section className="profile-card" aria-labelledby="profile-title">
-                <h1 id="profile-title">プロフィール</h1>
+                <h1 id="profile-title">Profile</h1>
                 {isLoading && <p>プロフィールを読み込み中です</p>}
                 {isError && (
                     <p role="alert">
@@ -55,15 +55,13 @@ export default function HomePage() {
                 {!isLoading && !isError && data && (
                     <dl className="profile-grid">
                         <div>
-                            <dt>ユーザー名</dt>
+                            <dt>ニックネーム</dt>
                             <dd>{data.username}</dd>   
                         </div>
                         <div>
-                            <dt>ロール</dt>
-                            <dd>{data.role}</dd>
-                        </div>
-                        <div>
-                            <dt>登録日</dt>
+                            <dt>
+                                このサイトを作った日
+                            </dt>
                             <dd>{formatDate(data.createdAt)}</dd>
                         </div>
                     </dl>

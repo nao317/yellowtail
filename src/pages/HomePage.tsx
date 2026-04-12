@@ -76,6 +76,10 @@ export default function HomePage() {
                         {!isLoading && !isError && data && (
                             <dl className="profile-grid">
                                 <div>
+                                    <dt>名前</dt>
+                                    <dd>奥村　直</dd>
+                                </div>
+                                <div>
                                     <dt>ニックネーム</dt>
                                     <dd>{data.username}</dd>
                                 </div>

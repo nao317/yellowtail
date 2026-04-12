@@ -48,7 +48,7 @@ export default function HomePage() {
                 </div>
                 <header className="profile-page-header">
                     <TypeText
-                        text={["Hi, there!", "Welcome to my portfolio.", "I'm Nao Okumura, Kyutech student."]}
+                        text={["Hi, there!", "Welcome to my portfolio.", "I'm in my third year at Kyutech"]}
                         typingSpeed={130}
                         pauseDuration={10000}
                         showCursor
@@ -80,7 +80,7 @@ export default function HomePage() {
                                     <dd>奥村　直</dd>
                                 </div>
                                 <div>
-                                    <dt>ニックネーム</dt>
+                                    <dt>ハンドルネーム</dt>
                                     <dd>{data.username}</dd>
                                 </div>
                                 <div>

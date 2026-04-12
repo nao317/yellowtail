@@ -8,6 +8,10 @@ vi.mock(`@tanstack/react-query`, () => ({
     useQuery: vi.fn(),
 }))
 
+vi.mock('../components/Silk', () => ({
+    default: () => <div data-testid="silk-bg" />,
+}))
+
 const mockedUseQuery = vi.mocked(useQuery)
 
 describe('HomePage', () => {

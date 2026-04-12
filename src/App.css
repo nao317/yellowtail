@@ -32,6 +32,10 @@
   text-align: left;
 }
 
+.profile-card h1 {
+  text-align: center;
+}
+
 .profile-card-bg {
   position: absolute;
   inset: 0;
@@ -54,7 +58,21 @@
   width: min(640px, 100%);
 }
 
-.profile-page-header h1 {
+.profile-page-header {
+  color: #fff;
+  margin: 50px;
+}
+
+.profile-page-header .text-type__content {
+  color: #fff;
+  font-weight: 500;
+  font-size: 45px;
+}
+
+.profile-page-header .hero-cursor {
+  font-size: 4.5em;
+  line-height: 1;
+  font-weight: 500;
   color: #fff;
 }
 

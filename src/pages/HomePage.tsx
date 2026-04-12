@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase/client'
 import type { Profile, ProfileRow } from '../features/profile/type'
 import Silk from '../components/Silk'
+import TypeText from '../components/TypeText'
 
 async function fetchAdminProfile(): Promise<Profile | null> {
     const { data, error } = await supabase
@@ -27,10 +28,6 @@ async function fetchAdminProfile(): Promise<Profile | null> {
     }
 }
 
-function formatDate(iso: string): string {
-    return new Intl.DateTimeFormat('ja-JP', { dateStyle: 'long' }).format(new Date(iso))
-}
-
 export default function HomePage() {
     const { data, isLoading, isError, error } = useQuery({
         queryKey: ['profile', 'admin'],
@@ -50,11 +47,20 @@ export default function HomePage() {
                     />
                 </div>
                 <header className="profile-page-header">
-                    <h1>Portfolio</h1>
+                    <TypeText
+                        text={["Hi, there!", "Welcome to my portfolio.", "I'm Nao Okumura, Kyutech student."]}
+                        typingSpeed={130}
+                        pauseDuration={10000}
+                        showCursor
+                        cursorCharacter="_"
+                        cursorClassName="hero-cursor"
+                        deletingSpeed={100}
+                        cursorBlinkDuration={0.7}
+                    />
                 </header>
                 <section className="profile-card" aria-labelledby="profile-title">
                     <div className="profile-card-content">
-                        <h1 id="profile-title">Profile</h1>
+                        <h1 id="profile-title">自己紹介</h1>
                         {isLoading && <p>プロフィールを読み込み中です</p>}
                         {isError && (
                             <p role="alert">
@@ -74,10 +80,12 @@ export default function HomePage() {
                                     <dd>{data.username}</dd>
                                 </div>
                                 <div>
-                                    <dt>
-                                        このサイトを作った日
-                                    </dt>
-                                    <dd>{formatDate(data.createdAt)}</dd>
+                                    <dt>大学・学部・学科</dt>
+                                    <dd>九州工業大学情報工学部知的システム工学科</dd>
+                                </div>
+                                <div>
+                                    <dt>所属サークル</dt>
+                                    <dd>C3／競技プログラミングサークル／Kyutech Code Lab</dd>
                                 </div>
                             </dl>
                         )}

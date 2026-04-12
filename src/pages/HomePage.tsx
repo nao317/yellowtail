@@ -1,15 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase/client'
 import type { Profile, ProfileRow } from '../features/profile/type'
+import Silk from '../components/Silk'
 
 async function fetchAdminProfile(): Promise<Profile | null> {
     const { data, error } = await supabase
-    .from('profiles')
-    .select('id, username, role, created_at')
-    .eq('role', 'admin')
-    .limit(1)
-    .maybeSingle<ProfileRow>()
-    
+        .from('profiles')
+        .select('id, username, role, created_at')
+        .eq('role', 'admin')
+        .limit(1)
+        .maybeSingle<ProfileRow>()
+
     if (error) {
         throw new Error(error.message)
     }
@@ -38,34 +39,45 @@ export default function HomePage() {
 
     return (
         <main className="home">
+            <div className="profile-card-bg" aria-hidden="true">
+                <Silk
+                    speed={3.5}
+                    scale={0.7}
+                    color="#7B7481"
+                    noiseIntensity={0}
+                    rotation={0.6}
+                />
+            </div>
             <section className="profile-card" aria-labelledby="profile-title">
-                <h1 id="profile-title">Profile</h1>
-                {isLoading && <p>プロフィールを読み込み中です</p>}
-                {isError && (
-                    <p role="alert">
-                        プロフィールの取得に失敗しました
-                        {' '}
-                        {(error as Error).message}
-                    </p>
-                )}
+                <div className="profile-card-content">
+                    <h1 id="profile-title">Profile</h1>
+                    {isLoading && <p>プロフィールを読み込み中です</p>}
+                    {isError && (
+                        <p role="alert">
+                            プロフィールの取得に失敗しました
+                            {' '}
+                            {(error as Error).message}
+                        </p>
+                    )}
 
-                {!isLoading && !isError && !data && (
-                    <p>表示できるプロフィールがまだありません</p>
-                )}
-                {!isLoading && !isError && data && (
-                    <dl className="profile-grid">
-                        <div>
-                            <dt>ニックネーム</dt>
-                            <dd>{data.username}</dd>   
-                        </div>
-                        <div>
-                            <dt>
-                                このサイトを作った日
-                            </dt>
-                            <dd>{formatDate(data.createdAt)}</dd>
-                        </div>
-                    </dl>
-                )}
+                    {!isLoading && !isError && !data && (
+                        <p>表示できるプロフィールがまだありません</p>
+                    )}
+                    {!isLoading && !isError && data && (
+                        <dl className="profile-grid">
+                            <div>
+                                <dt>ニックネーム</dt>
+                                <dd>{data.username}</dd>
+                            </div>
+                            <div>
+                                <dt>
+                                    このサイトを作った日
+                                </dt>
+                                <dd>{formatDate(data.createdAt)}</dd>
+                            </div>
+                        </dl>
+                    )}
+                </div>
             </section>
         </main>
     )

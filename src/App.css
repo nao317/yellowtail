@@ -7,13 +7,31 @@
 }
 
 .profile-card {
+  position: relative;
+  overflow: hidden;
   width: min(640px, 100%);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 24px;
   box-shadow: var(--shadow);
-  background: var(--bg);
+  background: color-mix(in oklab, var(--bg) 80%, transparent);
   text-align: left;
+}
+
+.profile-card-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.profile-card-bg canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.profile-card-content {
+  position: relative;
+  z-index: 1;
 }
 
 .profile-card h1 {

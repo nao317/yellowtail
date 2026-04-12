@@ -39,45 +39,50 @@ export default function HomePage() {
 
     return (
         <main className="home">
-            <div className="profile-card-bg" aria-hidden="true">
-                <Silk
-                    speed={3.5}
-                    scale={0.7}
-                    color="#7B7481"
-                    noiseIntensity={0}
-                    rotation={0.6}
-                />
-            </div>
-            <section className="profile-card" aria-labelledby="profile-title">
-                <div className="profile-card-content">
-                    <h1 id="profile-title">Profile</h1>
-                    {isLoading && <p>プロフィールを読み込み中です</p>}
-                    {isError && (
-                        <p role="alert">
-                            プロフィールの取得に失敗しました
-                            {' '}
-                            {(error as Error).message}
-                        </p>
-                    )}
-
-                    {!isLoading && !isError && !data && (
-                        <p>表示できるプロフィールがまだありません</p>
-                    )}
-                    {!isLoading && !isError && data && (
-                        <dl className="profile-grid">
-                            <div>
-                                <dt>ニックネーム</dt>
-                                <dd>{data.username}</dd>
-                            </div>
-                            <div>
-                                <dt>
-                                    このサイトを作った日
-                                </dt>
-                                <dd>{formatDate(data.createdAt)}</dd>
-                            </div>
-                        </dl>
-                    )}
+            <section className="profile-hero">
+                <div className="profile-card-bg" aria-hidden="true">
+                    <Silk
+                        speed={2.2}
+                        scale={1.0}
+                        color="#514c5459"
+                        noiseIntensity={0.5}
+                        rotation={0.6}
+                    />
                 </div>
+                <header className="profile-page-header">
+                    <h1>Portfolio</h1>
+                </header>
+                <section className="profile-card" aria-labelledby="profile-title">
+                    <div className="profile-card-content">
+                        <h1 id="profile-title">Profile</h1>
+                        {isLoading && <p>プロフィールを読み込み中です</p>}
+                        {isError && (
+                            <p role="alert">
+                                プロフィールの取得に失敗しました
+                                {' '}
+                                {(error as Error).message}
+                            </p>
+                        )}
+
+                        {!isLoading && !isError && !data && (
+                            <p>表示できるプロフィールがまだありません</p>
+                        )}
+                        {!isLoading && !isError && data && (
+                            <dl className="profile-grid">
+                                <div>
+                                    <dt>ニックネーム</dt>
+                                    <dd>{data.username}</dd>
+                                </div>
+                                <div>
+                                    <dt>
+                                        このサイトを作った日
+                                    </dt>
+                                    <dd>{formatDate(data.createdAt)}</dd>
+                                </div>
+                            </dl>
+                        )}
+                    </div>
+                </section>
             </section>
         </main>
     )

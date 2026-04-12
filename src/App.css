@@ -1,7 +1,21 @@
 .home {
-  min-height: 100vh;
+  min-height: 100svh;
   display: grid;
-  place-items: center;
+  align-content: center;
+  justify-items: center;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.profile-hero {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  min-height: 100svh;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 16px;
   padding: 24px;
   box-sizing: border-box;
 }
@@ -18,15 +32,48 @@
   text-align: left;
 }
 
+.profile-card h1 {
+  text-align: center;
+}
+
 .profile-card-bg {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  z-index: 0;
 }
 
 .profile-card-bg canvas {
   width: 100% !important;
   height: 100% !important;
+}
+
+.profile-page-header,
+.profile-card {
+  position: relative;
+  z-index: 1;
+}
+
+.profile-page-header {
+  width: min(640px, 100%);
+}
+
+.profile-page-header {
+  color: #fff;
+  margin: 50px;
+}
+
+.profile-page-header .text-type__content {
+  color: #fff;
+  font-weight: 500;
+  font-size: 45px;
+}
+
+.profile-page-header .hero-cursor {
+  font-size: 4.5em;
+  line-height: 1;
+  font-weight: 500;
+  color: #fff;
 }
 
 .profile-card-content {

@@ -212,3 +212,39 @@ React + Supabase で実装する前提の初期設計書です。
 - タグ・カテゴリ
 - Markdownエディタ
 - OGP画像自動生成
+
+## お問い合わせフォーム（フッター）設定手順
+
+フッターにお問い合わせフォームを実装済みです。
+このフォームは API エンドポイント経由で送信し、画面上にはメールアドレスを表示しません。
+
+### 1. 環境変数を設定
+
+`.env` に以下を設定します。
+
+```env
+VITE_CONTACT_FORM_ENDPOINT=
+```
+
+### 2. Gmail で受信する設定（推奨: Formspree）
+
+1. Formspree でフォームを作成し、発行されたエンドポイントを取得
+2. Formspree 側で通知先メールアドレスに Gmail を設定
+2. `.env` の `VITE_CONTACT_FORM_ENDPOINT` に設定
+
+```env
+VITE_CONTACT_FORM_ENDPOINT=https://formspree.io/f/xxxxabcd
+```
+
+3. 開発サーバーを再起動
+
+```bash
+npm run dev
+```
+
+### 3. 動作確認
+
+1. 画面下部の「お問い合わせ」フォームに入力
+2. 送信ボタンを押下
+3. 送信成功メッセージが表示されることを確認
+4. Formspree の受信ログ、または通知先の Gmail に届くことを確認

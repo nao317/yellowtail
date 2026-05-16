@@ -1,0 +1,134 @@
+.contact-form {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+  color: #000;
+}
+.contact-form-inner h2 {
+  margin: 0 0 12px 0;
+}
+.contact-form label {
+  display: block;
+  margin-bottom: 12px;
+}
+.contact-form .label-text {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+  color: #000;
+}
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #000;
+  border-radius: 6px;
+  font-size: 1rem;
+  color: #000;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+/* Keep the same UI after focusing/input — do not change background or text color */
+.contact-form input:focus,
+.contact-form textarea:focus,
+.contact-form input:focus-visible,
+.contact-form textarea:focus-visible {
+  outline: none;
+  box-shadow: none;
+  background: #fff;
+  color: #000;
+  border: 1px solid #000;
+}
+
+/* Same for plain variant when embedded */
+.contact-form--plain input:focus,
+.contact-form--plain textarea:focus,
+.contact-form--plain input:focus-visible,
+.contact-form--plain textarea:focus-visible {
+  outline: none;
+  box-shadow: none;
+  background: inherit;
+  color: #000;
+  border: 1px solid #000;
+}
+.contact-form textarea { min-height: 120px; }
+.contact-actions { margin-top: 12px; display:flex; gap:12px; align-items:center }
+.contact-actions button { padding: 8px 14px; border-radius:6px; background:#111827; color:white; border:none }
+.contact-form .success { color: #0b7a3e; margin:0 }
+.contact-form .error { color: #9b1c1c; margin:0 }
+
+/* When embedded inside another white card, remove outer background and padding */
+.contact-form--plain {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  max-width: 100%;
+  margin: 0;
+}
+
+/* Constrain input width on large screens and center them inside wide forms */
+@media (min-width: 900px) {
+  .contact-form {
+    max-width: 720px;
+  }
+  .contact-form input,
+  .contact-form textarea {
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+  }
+  /* When embedded as plain inside a profile-card, make fields full-width of card */
+  .contact-form--plain input,
+  .contact-form--plain textarea {
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    /* when embedded in card, match card background */
+    background: inherit;
+    border: 1px solid #000;
+  }
+
+  /* Ensure inputs keep black text and white background even after input/autofill */
+  .contact-form input,
+  .contact-form textarea,
+  .contact-form--plain input,
+  .contact-form--plain textarea {
+    color: #000 !important;
+  }
+
+  /* Prevent browser autofill from changing text color/background */
+  .contact-form input:-webkit-autofill,
+  .contact-form textarea:-webkit-autofill,
+  .contact-form input:-webkit-autofill:focus,
+  .contact-form textarea:-webkit-autofill:focus {
+    -webkit-text-fill-color: #000 !important;
+    box-shadow: 0 0 0px 1000px #fff inset !important;
+    background-clip: padding-box;
+  }
+
+  .contact-form--plain input:-webkit-autofill,
+  .contact-form--plain textarea:-webkit-autofill,
+  .contact-form--plain input:-webkit-autofill:focus,
+  .contact-form--plain textarea:-webkit-autofill:focus {
+    -webkit-text-fill-color: #000 !important;
+    /* keep inherited background for plain variant */
+    box-shadow: 0 0 0px 1000px inherit inset !important;
+    background-clip: padding-box;
+  }
+
+  /* Also ensure :valid/:invalid states don't change color */
+  .contact-form input:valid,
+  .contact-form textarea:valid,
+  .contact-form input:invalid,
+  .contact-form textarea:invalid {
+    color: #000;
+  }
+}
+
+.contact-inline-title { margin: 12px 0; font-size: 20px; }

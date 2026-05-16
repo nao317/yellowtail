@@ -7,6 +7,9 @@ export default function ChallengePage() {
   const location = useLocation()
   const params = new URLSearchParams(location.search)
   const next = params.get('next') || '/'
+  const hostname = window.location.hostname
+  const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.local')
+  const shouldUseTurnstile = Boolean(env.turnstileEnabled && env.turnstileSiteKey && !isLocalHost)
 
   async function handleVerify(token: string) {
     try {
@@ -39,13 +42,13 @@ export default function ChallengePage() {
     >
       <h1>サイト閲覧の確認</h1>
       <p>自動化されたアクセスを防ぐため、簡単な確認をお願いします。</p>
-      {env.turnstileSiteKey ? (
+      {shouldUseTurnstile ? (
         <div style={{ marginTop: 20 }}>
           <Turnstile onVerify={handleVerify} />
         </div>
       ) : (
         <div style={{ marginTop: 20 }}>
-          <p>Turnstile は現在構成されていません。管理者に連絡してください。</p>
+          <p>Turnstile はローカル環境では無効です。チェックをスキップして表示します。</p>
         </div>
       )}
     </div>

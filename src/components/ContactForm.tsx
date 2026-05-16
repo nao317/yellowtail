@@ -15,13 +15,15 @@ export default function ContactForm({ plain = false }: ContactFormProps) {
     const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
     const [errorMsg, setErrorMsg] = useState<string | null>(null)
     const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+    const hostname = window.location.hostname
+    const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.local')
+    const requiresTurnstile = Boolean(env.turnstileEnabled && env.turnstileSiteKey && !isLocalHost)
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
         setStatus('sending')
         setErrorMsg(null)
 
-        const requiresTurnstile = Boolean(env.turnstileSiteKey)
         if (requiresTurnstile && !turnstileToken) {
             setStatus('error')
             setErrorMsg('Turnstileの検証が完了していません。')
@@ -88,9 +90,11 @@ export default function ContactForm({ plain = false }: ContactFormProps) {
                 {status === 'success' && <p className="success">送信が完了しました。ありがとうございました。</p>}
                 {status === 'error' && <p role="alert" className="error">送信に失敗しました: {errorMsg}</p>}
             </div>
-            <div style={{ marginTop: 12 }}>
-                <Turnstile onVerify={(token) => setTurnstileToken(token)} />
-            </div>
+            {requiresTurnstile && (
+                <div style={{ marginTop: 12 }}>
+                    <Turnstile onVerify={(token) => setTurnstileToken(token)} />
+                </div>
+            )}
         </form>
     )
 }

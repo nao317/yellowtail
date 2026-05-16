@@ -3,7 +3,7 @@ import { FilePenLine, List, LogOut } from 'lucide-react'
 import { useAuth } from '../providers/AuthProviders'
 
 export default function AdminLayout() {
-	const { signOut, user } = useAuth()
+	const { signOut } = useAuth()
 
 	return (
 		<main className="admin-shell">
@@ -12,7 +12,7 @@ export default function AdminLayout() {
 					<div>
 						<p className="admin-shell__eyebrow">Admin</p>
 						<h1 className="admin-shell__title">投稿管理</h1>
-						<p className="admin-shell__subtitle">{user?.email}</p>
+						<p className="admin-shell__subtitle">管理者としてログイン中です</p>
 					</div>
 					<div className="admin-shell__actions">
 						<Link to="/admin/posts" className="admin-shell__button admin-shell__button--ghost admin-shell__button--icon" aria-label="投稿一覧" title="投稿一覧">

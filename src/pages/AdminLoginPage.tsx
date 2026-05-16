@@ -8,7 +8,7 @@ export default function AdminLoginPage() {
 	const navigate = useNavigate()
 	const location = useLocation()
 	const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/admin/posts'
-	const [email, setEmail] = useState('country.gentleman.0317@gmail.com')
+	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [status, setStatus] = useState<'idle' | 'submitting'>('idle')
 	const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -49,6 +49,7 @@ export default function AdminLoginPage() {
 							onChange={(event) => setEmail(event.target.value)}
 							type="email"
 							autoComplete="email"
+							placeholder="管理者のメールアドレス"
 							required
 						/>
 					</label>

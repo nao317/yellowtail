@@ -16,11 +16,9 @@ export default function ChallengePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token }),
       })
-      const data = await res.json()
+      const data = await res.json().catch(() => ({}))
       if (!res.ok || !data.success) throw new Error('verification failed')
 
-      // set short-lived cookie (client-side); server-side cookie would be more secure
-      document.cookie = `turnstile_verified=1; path=/; max-age=${60 * 60 * 24}; SameSite=Lax; Secure`
       navigate(next)
     } catch (err) {
       console.error(err)
@@ -29,7 +27,16 @@ export default function ChallengePage() {
   }
 
   return (
-    <div style={{ padding: 24, maxWidth: 720, margin: '40px auto', textAlign: 'center' }}>
+    <div
+      style={{
+        padding: '120px 24px 24px',
+        maxWidth: 720,
+        margin: '0 auto',
+        textAlign: 'center',
+        minHeight: '100vh',
+        boxSizing: 'border-box',
+      }}
+    >
       <h1>サイト閲覧の確認</h1>
       <p>自動化されたアクセスを防ぐため、簡単な確認をお願いします。</p>
       {env.turnstileSiteKey ? (

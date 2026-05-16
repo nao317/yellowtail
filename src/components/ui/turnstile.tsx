@@ -5,46 +5,34 @@ type Props = {
   onVerify: (token: string) => void
 }
 
-const SCRIPT_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
-
 export default function Turnstile({ onVerify }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
+    const sitekey = env.turnstileSiteKey
+    if (!sitekey) return
+
     let mounted = true
-
-    function ensureScript(): Promise<void> {
-      return new Promise((resolve) => {
-        if ((window as any).turnstile) return resolve()
-        const existing = document.querySelector(`script[src="${SCRIPT_SRC}"]`)
-        if (existing) {
-          existing.addEventListener('load', () => resolve())
-          return
-        }
-        const s = document.createElement('script')
-        s.src = SCRIPT_SRC
-        s.async = true
-        s.defer = true
-        s.onload = () => resolve()
-        document.head.appendChild(s)
-      })
-    }
-
-    ensureScript().then(() => {
+    const ready = (window as any).turnstile?.ready
+    const render = () => {
       if (!mounted) return
-      const sitekey = env.turnstileSiteKey
-      if (!sitekey) return
       const el = containerRef.current
-      if (!el) return
+      if (!el || !(window as any).turnstile) return
       try {
         ;(window as any).turnstile.render(el, {
           sitekey,
           callback: (token: string) => onVerify(token),
         })
-      } catch (e) {
-        // fallback: element may already have been auto-rendered
+      } catch {
+        // keep the widget from crashing the page if the script has already rendered elsewhere
       }
-    })
+    }
+
+    if (typeof ready === 'function') {
+      ready(render)
+    } else {
+      render()
+    }
 
     return () => {
       mounted = false

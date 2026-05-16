@@ -21,12 +21,12 @@ export default function ContactForm({ plain = false }: ContactFormProps) {
         setStatus('sending')
         setErrorMsg(null)
 
-            const requiresTurnstile = Boolean(env.turnstileSiteKey)
-            if (requiresTurnstile && !turnstileToken) {
-                setStatus('error')
-                setErrorMsg('Turnstileの検証が完了していません。')
-                return
-            }
+        const requiresTurnstile = Boolean(env.turnstileSiteKey)
+        if (requiresTurnstile && !turnstileToken) {
+            setStatus('error')
+            setErrorMsg('Turnstileの検証が完了していません。')
+            return
+        }
 
         try {
             if (requiresTurnstile) {
@@ -35,7 +35,7 @@ export default function ContactForm({ plain = false }: ContactFormProps) {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, email, message, token: turnstileToken }),
                 })
-                const data = await res.json()
+                const data = await res.json().catch(() => ({}))
                 if (!res.ok || !data.success) {
                     throw new Error(data?.error || 'サーバ送信に失敗しました')
                 }

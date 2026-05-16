@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import Turnstile from '../components/ui/turnstile'
 import { env } from '../shared/lib/env'
+import { markTurnstileClientVerified } from '../shared/lib/turnstile-session'
 
 export default function ChallengePage() {
   const navigate = useNavigate()
@@ -20,7 +21,14 @@ export default function ChallengePage() {
         body: JSON.stringify({ token }),
       })
       const data = await res.json().catch(() => ({}))
+      if (res.status === 404) {
+        markTurnstileClientVerified()
+        navigate(next)
+        return
+      }
       if (!res.ok || !data.success) throw new Error('verification failed')
+
+      markTurnstileClientVerified()
 
       navigate(next)
     } catch (err) {

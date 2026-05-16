@@ -26,6 +26,7 @@
   padding: 6px 12px;
   align-items: center;
   justify-content: flex-start;
+  flex-wrap: wrap;
 }
 
 .liquid-link {
@@ -39,9 +40,49 @@
   transition: background 0.15s ease, transform 0.08s ease;
 }
 
+.liquid-link--button {
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid rgba(15, 23, 32, 0.14);
+  background: rgba(255, 255, 255, 0.78);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.liquid-link--accent {
+  background: #0f1720;
+  color: #fff;
+  border-color: #0f1720;
+}
+
+.liquid-link--ghost {
+  background: rgba(255, 255, 255, 0.45);
+}
+
 .liquid-link:hover {
   background: rgba(0,0,0,0.06);
   transform: translateY(-1px);
+}
+
+.liquid-link--button:hover {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.liquid-link--accent:hover {
+  background: #1b2430;
+}
+
+.liquid-link--ghost:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.liquid-link--button svg {
+  flex: 0 0 auto;
+}
+
+.liquid-header button.liquid-link {
+  border: 1px solid rgba(15, 23, 32, 0.14);
+  cursor: pointer;
 }
 
 @media (max-width: 640px) {
@@ -64,5 +105,10 @@
     padding: 8px 16px;
     justify-content: center;
     box-sizing: border-box;
+  }
+
+  .liquid-link--button {
+    padding: 9px 12px;
+    font-size: 13px;
   }
 }

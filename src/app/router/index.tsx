@@ -5,6 +5,7 @@ import NotFound from '../errors/NotFound'
 import HomePage from '../../pages/HomePage'
 import PostsPage from '../../pages/PostsPage'
 import PostDetailPage from '../../pages/PostDetailPage'
+import ChallengePage from '../../pages/ChallengePage'
 
 export const router = createBrowserRouter([
   {
@@ -23,6 +24,10 @@ export const router = createBrowserRouter([
         {
           path: 'posts/:slug',
           element: <PostDetailPage />,
+        },
+        {
+          path: 'challenge',
+          element: <ChallengePage />,
         },
       {
         path: '*',

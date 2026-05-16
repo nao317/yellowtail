@@ -1,7 +1,23 @@
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
 import Header from '../../components/Header'
+import { env } from '../../shared/lib/env'
 
 export default function RootLayout() {
+    const navigate = useNavigate()
+    const location = useLocation()
+
+    useEffect(() => {
+        const requires = Boolean(env.turnstileSiteKey)
+        if (!requires) return
+
+        const hasCookie = document.cookie.split(';').map(s => s.trim()).some(s => s.startsWith('turnstile_verified='))
+        if (!hasCookie && location.pathname !== '/challenge') {
+            const next = encodeURIComponent(location.pathname + location.search)
+            navigate(`/challenge?next=${next}`, { replace: true })
+        }
+    }, [location.pathname, location.search, navigate])
+
     return (
         <>
             <Header />

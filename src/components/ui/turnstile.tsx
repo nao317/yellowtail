@@ -5,8 +5,6 @@ type Props = {
   onVerify: (token: string) => void
 }
 
-const SCRIPT_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
-
 export default function Turnstile({ onVerify }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null)
 

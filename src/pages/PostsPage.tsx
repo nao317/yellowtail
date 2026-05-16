@@ -48,7 +48,7 @@ export default function PostsPage() {
   return (
     <main style={{ padding: 24, paddingTop: 88 }}>
       <div style={{ maxWidth: 880, margin: '0 auto', width: '100%' }}>
-        <h1>Posts</h1>
+        {/* top heading removed by design */}
 
         {isLoading && <p>読み込み中…</p>}
         {isError && <p role="alert">取得エラー: {(error as Error).message}</p>}

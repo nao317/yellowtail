@@ -29,7 +29,11 @@ export default function PostDetailPage() {
   return (
     <main className="content-page content-page--post-detail">
       <div className="content-page__inner">
-        <p><Link to="/posts">← 投稿一覧に戻る</Link></p>
+        <p className="post-detail-back-link-wrap">
+          <Link to="/posts" className="post-detail-back-link">
+            ← 投稿一覧に戻る
+          </Link>
+        </p>
         <section className="profile-card">
           <div className="profile-card-content">
             <h1 style={{ marginTop: 0 }}>{post.title}</h1>

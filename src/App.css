@@ -42,6 +42,7 @@
   color: #000;
   text-decoration: none;
 }
+
 .profile-card h2 a:hover {
   text-decoration: underline;
 }
@@ -78,9 +79,6 @@
 
 .profile-page-header {
   width: min(640px, 100%);
-}
-
-.profile-page-header {
   color: #fff;
   margin: 50px;
 }
@@ -128,4 +126,65 @@
   margin: 0;
   color: var(--text-h);
   font-weight: 600;
+}
+
+.content-page {
+  padding: 24px;
+  padding-top: 88px;
+  box-sizing: border-box;
+}
+
+.content-page__inner {
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+  .content-page {
+    padding: 12px 0 20px;
+    padding-top: 72px;
+  }
+
+  .content-page__inner {
+    max-width: none;
+    width: 100%;
+  }
+
+  .profile-hero {
+    padding: 12px 0 20px;
+    gap: 12px;
+  }
+
+  .profile-page-header {
+    width: 100%;
+    margin: 12px 0 0;
+  }
+
+  .profile-page-header .text-type__content {
+    font-size: clamp(28px, 8vw, 34px);
+    line-height: 1.15;
+  }
+
+  .profile-page-header .hero-cursor {
+    font-size: 1.1em;
+  }
+
+  .profile-card {
+    width: 100%;
+    padding: 16px 14px;
+    margin: 8px 0;
+  }
+
+  .profile-card h1 {
+    font-size: 26px;
+  }
+
+  .profile-card h2 {
+    font-size: 22px;
+  }
+
+  .profile-card-content {
+    overflow-wrap: anywhere;
+  }
 }

@@ -45,6 +45,24 @@
 }
 
 @media (max-width: 640px) {
-  .liquid-header { top: 10px; width: calc(100% - 24px); left: 12px; transform: none; border-radius: 12px; }
-  .liquid-header__inner { max-width: 100%; padding: 8px; justify-content: center; }
+  .liquid-header {
+    position: fixed;
+    top: 10px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    transform: none;
+    border-radius: 999px;
+    padding: 8px 0;
+    box-sizing: border-box;
+    box-shadow: 0 12px 28px rgba(8, 15, 25, 0.18);
+  }
+
+  .liquid-header__inner {
+    max-width: none;
+    width: 100%;
+    padding: 8px 16px;
+    justify-content: center;
+    box-sizing: border-box;
+  }
 }

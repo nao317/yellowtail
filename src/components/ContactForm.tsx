@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase/client'
 import Turnstile from './ui/turnstile'
+import { env } from '../shared/lib/env'
 import './ContactForm.css'
 
 type ContactFormProps = {
@@ -20,21 +21,24 @@ export default function ContactForm({ plain = false }: ContactFormProps) {
         setStatus('sending')
         setErrorMsg(null)
 
-        if (!turnstileToken) {
-            setStatus('error')
-            setErrorMsg('Turnstileの検証が完了していません。')
-            return
-        }
+            const requiresTurnstile = Boolean(env.turnstileSiteKey)
+            if (requiresTurnstile && !turnstileToken) {
+                setStatus('error')
+                setErrorMsg('Turnstileの検証が完了していません。')
+                return
+            }
 
         try {
-            const res = await fetch('/api/verify-turnstile', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token: turnstileToken }),
-            })
-            const data = await res.json()
-            if (!res.ok || !data.success) {
-                throw new Error('Turnstile検証に失敗しました')
+            if (requiresTurnstile) {
+                const res = await fetch('/api/verify-turnstile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: turnstileToken }),
+                })
+                const data = await res.json()
+                if (!res.ok || !data.success) {
+                    throw new Error('Turnstile検証に失敗しました')
+                }
             }
 
             const { error } = await supabase.from('contacts').insert({ name, email, message })

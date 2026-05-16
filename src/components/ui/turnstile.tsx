@@ -33,6 +33,7 @@ export default function Turnstile({ onVerify }: Props) {
     ensureScript().then(() => {
       if (!mounted) return
       const sitekey = env.turnstileSiteKey
+      if (!sitekey) return
       const el = containerRef.current
       if (!el) return
       try {

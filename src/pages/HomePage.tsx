@@ -1,32 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { supabase } from '../lib/supabase/client'
-import type { Profile, ProfileRow } from '../features/profile/type'
-import Silk from '../components/Silk'
+import { fetchAdminProfile } from '../lib/profile'
 import TypeText from '../components/TypeText'
-
-async function fetchAdminProfile(): Promise<Profile | null> {
-    const { data, error } = await supabase
-        .from('profiles')
-        .select('id, username, role, created_at')
-        .eq('role', 'admin')
-        .limit(1)
-        .maybeSingle<ProfileRow>()
-
-    if (error) {
-        throw new Error(error.message)
-    }
-
-    if (!data) {
-        return null
-    }
-
-    return {
-        id: data.id,
-        username: data.username,
-        role: data.role,
-        createdAt: data.created_at,
-    }
-}
+import ContactForm from '../components/ContactForm'
 
 export default function HomePage() {
     const { data, isLoading, isError, error } = useQuery({
@@ -37,15 +12,6 @@ export default function HomePage() {
     return (
         <main className="home">
             <section className="profile-hero">
-                <div className="profile-card-bg" aria-hidden="true">
-                    <Silk
-                        speed={2.2}
-                        scale={1.0}
-                        color="#514c5459"
-                        noiseIntensity={0.5}
-                        rotation={0.6}
-                    />
-                </div>
                 <header className="profile-page-header">
                     <TypeText
                         text={["Hi, there!", "Welcome to my portfolio.", "I'm in my third year at Kyutech"]}
@@ -58,15 +24,15 @@ export default function HomePage() {
                         cursorBlinkDuration={0.7}
                     />
                 </header>
+
+                {/* 自己紹介ブロック（白背景） */}
                 <section className="profile-card" aria-labelledby="profile-title">
                     <div className="profile-card-content">
                         <h1 id="profile-title">自己紹介</h1>
                         {isLoading && <p>プロフィールを読み込み中です</p>}
                         {isError && (
                             <p role="alert">
-                                プロフィールの取得に失敗しました
-                                {' '}
-                                {(error as Error).message}
+                                プロフィールの取得に失敗しました {(error as Error).message}
                             </p>
                         )}
 
@@ -93,6 +59,13 @@ export default function HomePage() {
                                 </div>
                             </dl>
                         )}
+                    </div>
+                </section>
+
+                {/* お問い合わせブロック（自己紹介と同じ白ブロック） */}
+                <section className="profile-card" aria-labelledby="contact-title" style={{ marginTop: 24 }}>
+                    <div className="profile-card-content">
+                        <ContactForm plain />
                     </div>
                 </section>
             </section>

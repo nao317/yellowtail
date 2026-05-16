@@ -5,6 +5,7 @@
   justify-items: center;
   box-sizing: border-box;
   padding: 0;
+  position: relative;
 }
 
 .profile-hero {
@@ -52,6 +53,18 @@
 .profile-card {
   position: relative;
   z-index: 1;
+}
+
+.silk-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.silk-fullscreen canvas {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .profile-page-header {

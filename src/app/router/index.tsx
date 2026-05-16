@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createHashRouter } from 'react-router-dom'
 import RootLayout from '../layout/RootLayout'
 import AppErrorBoundary from '../errors/AppErrorBoundary'
 import NotFound from '../errors/NotFound'
@@ -7,7 +7,7 @@ import PostsPage from '../../pages/PostsPage'
 import PostDetailPage from '../../pages/PostDetailPage'
 import ChallengePage from '../../pages/ChallengePage'
 
-export const router = createBrowserRouter([
+export const router = createHashRouter([
   {
     path: '/',
     element: <RootLayout />,

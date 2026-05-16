@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase/client'
+import Turnstile from './ui/turnstile'
 import './ContactForm.css'
 
 type ContactFormProps = {
@@ -12,19 +13,37 @@ export default function ContactForm({ plain = false }: ContactFormProps) {
     const [message, setMessage] = useState('')
     const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
     const [errorMsg, setErrorMsg] = useState<string | null>(null)
+    const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
         setStatus('sending')
         setErrorMsg(null)
 
+        if (!turnstileToken) {
+            setStatus('error')
+            setErrorMsg('Turnstileの検証が完了していません。')
+            return
+        }
+
         try {
+            const res = await fetch('/api/verify-turnstile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: turnstileToken }),
+            })
+            const data = await res.json()
+            if (!res.ok || !data.success) {
+                throw new Error('Turnstile検証に失敗しました')
+            }
+
             const { error } = await supabase.from('contacts').insert({ name, email, message })
             if (error) throw error
             setStatus('success')
             setName('')
             setEmail('')
             setMessage('')
+            setTurnstileToken(null)
         } catch (err) {
             setStatus('error')
             setErrorMsg((err as Error).message)
@@ -64,6 +83,9 @@ export default function ContactForm({ plain = false }: ContactFormProps) {
                 </button>
                 {status === 'success' && <p className="success">送信が完了しました。ありがとうございました。</p>}
                 {status === 'error' && <p role="alert" className="error">送信に失敗しました: {errorMsg}</p>}
+            </div>
+            <div style={{ marginTop: 12 }}>
+                <Turnstile onVerify={(token) => setTurnstileToken(token)} />
             </div>
         </form>
     )

@@ -198,6 +198,23 @@ React + Supabase で実装する前提の初期設計書です。
 
 - app 配下はアプリ初期化（Provider、Router、Layout）だけに限定する
 - 画面は pages、機能ロジックは features、共通処理は shared へ分離する
+
+## Cloudflare Turnstile の導入
+
+簡単な導入手順:
+
+- フロントエンド用サイトキーを `.env` に追加（Vite で公開）:
+
+  - `VITE_TURNSTILE_SITE_KEY=your_site_key`
+
+- サーバー側で検証するためのシークレットを環境変数に設定:
+
+  - `TURNSTILE_SECRET_KEY=your_secret_key`
+
+- フロントエンドは `src/components/ui/turnstile.tsx` のコンポーネントを使ってウィジェットを描画します。
+- サーバー側検証は `src/lib/turnstile.ts` の `verifyTurnstileToken` を利用してください。Express のサンプルハンドラは `src/server/verify-turnstile.example.ts` を参照してください。
+
+注意: 秘密鍵はサーバー側でのみ保持し、フロントエンドに置かないでください。
 - 入出力スキーマは features/*/schemas に集約する
 - データ取得は queries、更新は mutations で分離する
 - 画面から直接 Supabase SDK を呼ばない（services経由）

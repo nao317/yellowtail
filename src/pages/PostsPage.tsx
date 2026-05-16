@@ -46,8 +46,8 @@ export default function PostsPage() {
   const { data: posts, isLoading, isError, error } = useQuery({ queryKey: ['posts'], queryFn: fetchPosts })
 
   return (
-    <main style={{ padding: 24, paddingTop: 88 }}>
-      <div style={{ maxWidth: 880, margin: '0 auto', width: '100%' }}>
+    <main className="content-page content-page--posts">
+      <div className="content-page__inner">
         {/* top heading removed by design */}
 
         {isLoading && <p>読み込み中…</p>}

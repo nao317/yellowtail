@@ -27,8 +27,8 @@ export default function PostDetailPage() {
   if (!post) return <div>投稿が見つかりません。</div>
 
   return (
-    <main style={{ padding: 20, paddingTop: 88 }}>
-      <div style={{ maxWidth: 880, margin: '0 auto', width: '100%' }}>
+    <main className="content-page content-page--post-detail">
+      <div className="content-page__inner">
         <p><Link to="/posts">← 投稿一覧に戻る</Link></p>
         <section className="profile-card">
           <div className="profile-card-content">

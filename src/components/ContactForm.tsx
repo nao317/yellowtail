@@ -30,19 +30,19 @@ export default function ContactForm({ plain = false }: ContactFormProps) {
 
         try {
             if (requiresTurnstile) {
-                const res = await fetch('/api/verify-turnstile', {
+                const res = await fetch('/api/contact', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: turnstileToken }),
+                    body: JSON.stringify({ name, email, message, token: turnstileToken }),
                 })
                 const data = await res.json()
                 if (!res.ok || !data.success) {
-                    throw new Error('Turnstile検証に失敗しました')
+                    throw new Error(data?.error || 'サーバ送信に失敗しました')
                 }
+            } else {
+                const { error } = await supabase.from('contacts').insert({ name, email, message })
+                if (error) throw error
             }
-
-            const { error } = await supabase.from('contacts').insert({ name, email, message })
-            if (error) throw error
             setStatus('success')
             setName('')
             setEmail('')

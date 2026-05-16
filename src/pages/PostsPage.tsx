@@ -46,31 +46,33 @@ export default function PostsPage() {
   const { data: posts, isLoading, isError, error } = useQuery({ queryKey: ['posts'], queryFn: fetchPosts })
 
   return (
-    <main className="content-page content-page--posts">
-      <div className="content-page__inner">
-        {/* top heading removed by design */}
+    <main className="home content-page content-page--posts">
+      <section className="profile-hero">
+        <div className="content-page__inner">
+          {/* top heading removed by design */}
 
-        {isLoading && <p>読み込み中…</p>}
-        {isError && <p role="alert">取得エラー: {(error as Error).message}</p>}
+          {isLoading && <p>読み込み中…</p>}
+          {isError && <p role="alert">取得エラー: {(error as Error).message}</p>}
 
-        {!isLoading && !isError && posts && (
-          <ul style={{ display: 'grid', gap: 12, padding: 0, listStyle: 'none' }}>
-            {posts.map((p) => (
-              <li key={p.id}>
-                <section className="profile-card">
-                  <div className="profile-card-content">
-                    <h2 style={{ margin: 0 }}>
-                      <Link to={`/posts/${encodeURIComponent(p.slug ?? p.id)}`}>{p.title}</Link>
-                    </h2>
-                    {p.content && <p style={{ margin: '8px 0 0' }}>{p.content}</p>}
-                    {p.created_at && <small style={{ color: 'var(--text)', display: 'block', marginTop: 8 }}>{new Date(p.created_at).toLocaleString()}</small>}
-                  </div>
-                </section>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+          {!isLoading && !isError && posts && (
+            <ul className="posts-list">
+              {posts.map((p) => (
+                <li key={p.id}>
+                  <section className="profile-card">
+                    <div className="profile-card-content">
+                      <h2 style={{ margin: 0 }}>
+                        <Link to={`/posts/${encodeURIComponent(p.slug ?? p.id)}`}>{p.title}</Link>
+                      </h2>
+                      {p.content && <p style={{ margin: '8px 0 0' }}>{p.content}</p>}
+                      {p.created_at && <small style={{ color: 'var(--text)', display: 'block', marginTop: 8 }}>{new Date(p.created_at).toLocaleString()}</small>}
+                    </div>
+                  </section>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
     </main>
   )
 }

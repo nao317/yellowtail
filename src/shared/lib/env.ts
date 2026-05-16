@@ -3,7 +3,7 @@
 type AppEnv = {
     supabaseUrl: string
     supabaseAnonKey: string
-    turnstileSiteKey: string
+    turnstileSiteKey?: string
 }
 
 // envファイルから環境変数を読みだす関数
@@ -17,10 +17,14 @@ function readRequiredEnv(name: string): string {
     return value
 }
 
+function readOptionalEnv(name: string): string | undefined {
+    return (import.meta.env as Record<string, string | undefined>)[name]
+}
+
 // 作成したreadRequiredEnv関数を作成して得られた値を構造体に代入
 // 値を代入した構造体AppEnvをexport
 export const env: AppEnv = {
     supabaseUrl: readRequiredEnv('VITE_SUPABASE_URL'),
     supabaseAnonKey: readRequiredEnv('VITE_SUPABASE_ANON_KEY'),
-    turnstileSiteKey: readRequiredEnv('VITE_TURNSTILE_SITE_KEY'),
+    turnstileSiteKey: readOptionalEnv('VITE_TURNSTILE_SITE_KEY'),
 }

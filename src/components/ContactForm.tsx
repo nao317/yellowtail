@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase/client'
 import Turnstile from './ui/turnstile'
 import { env } from '../shared/lib/env'
+import { hasTurnstileClientVerified } from '../shared/lib/turnstile-session'
 import './ContactForm.css'
 
 type ContactFormProps = {
@@ -17,7 +18,7 @@ export default function ContactForm({ plain = false }: ContactFormProps) {
     const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
     const hostname = window.location.hostname
     const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.local')
-    const requiresTurnstile = Boolean(env.turnstileEnabled && env.turnstileSiteKey && !isLocalHost)
+    const requiresTurnstile = Boolean(env.turnstileEnabled && env.turnstileSiteKey && !isLocalHost && !hasTurnstileClientVerified())
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
@@ -38,6 +39,16 @@ export default function ContactForm({ plain = false }: ContactFormProps) {
                     body: JSON.stringify({ name, email, message, token: turnstileToken }),
                 })
                 const data = await res.json().catch(() => ({}))
+                if (res.status === 404) {
+                    const { error } = await supabase.from('contacts').insert({ name, email, message })
+                    if (error) throw error
+                    setStatus('success')
+                    setName('')
+                    setEmail('')
+                    setMessage('')
+                    setTurnstileToken(null)
+                    return
+                }
                 if (!res.ok || !data.success) {
                     throw new Error(data?.error || 'サーバ送信に失敗しました')
                 }

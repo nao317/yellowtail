@@ -1,6 +1,6 @@
-import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { ImagePlus } from 'lucide-react'
 import type { PostFormValues } from '../features/posts/type'
 import { supabase } from '../lib/supabase/client'
 
@@ -22,44 +22,67 @@ export default function AdminPostNewPage() {
 		is_published: false,
 	})
 	const [errorMessage, setErrorMessage] = useState<string | null>(null)
+	const [file, setFile] = useState<File | null>(null)
+	const [isUploading, setIsUploading] = useState(false)
+	const filePreviewUrl = useMemo(() => (file ? URL.createObjectURL(file) : null), [file])
 
-	const createPost = useMutation({
-		mutationFn: async (values: PostFormValues) => {
-			const now = new Date().toISOString()
-			const id = crypto.randomUUID()
-			const slug = values.slug.trim() || normalizeSlug(values.title)
-			const payload = {
-				id,
-				title: values.title.trim(),
-				slug,
-				content: values.content.trim(),
-				thumbnail_url: values.thumbnail_url.trim() || null,
-				is_published: values.is_published,
-				published_at: values.is_published ? now : null,
-				created_at: now,
-				updated_at: now,
-			}
+	useEffect(() => {
+		return () => {
+			if (filePreviewUrl) URL.revokeObjectURL(filePreviewUrl)
+		}
+	}, [filePreviewUrl])
 
-			const { error } = await supabase.from('posts').insert(payload)
-			if (error) {
-				throw new Error(error.message)
-			}
-
-			return { id }
-		},
-		onSuccess: (data) => {
-			navigate(`/admin/posts/${data.id}/edit`, { replace: true })
-		},
-	})
+	async function uploadFileForPost(id: string, file: File) {
+		const bucket = 'posts'
+		const path = `posts/${id}/${Date.now()}_${file.name}`
+		const { error } = await supabase.storage.from(bucket).upload(path, file)
+		if (error) {
+			throw error
+		}
+		const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path)
+		return urlData.publicUrl
+	}
 
 	async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault()
 		setErrorMessage(null)
 
+		const id = crypto.randomUUID()
+		const now = new Date().toISOString()
+		const slug = form.slug.trim() || normalizeSlug(form.title)
+		setIsUploading(true)
+
 		try {
-			await createPost.mutateAsync(form)
-		} catch (error) {
-			setErrorMessage((error as Error).message)
+			let thumbnail: string | null = form.thumbnail_url.trim() || null
+			if (file) {
+				try {
+					thumbnail = await uploadFileForPost(id, file)
+				} catch (uploadErr) {
+					console.error('upload error', uploadErr)
+					// fallback to manual URL if provided
+				}
+			}
+
+			const payload = {
+				id,
+				title: form.title.trim(),
+				slug,
+				content: form.content.trim(),
+				thumbnail_url: thumbnail,
+				is_published: form.is_published,
+				published_at: form.is_published ? now : null,
+				created_at: now,
+				updated_at: now,
+			}
+
+			const { error } = await supabase.from('posts').insert(payload)
+			if (error) throw error
+
+			navigate(`/admin/posts/${id}/edit`, { replace: true })
+		} catch (err) {
+			setErrorMessage((err as Error).message)
+		} finally {
+			setIsUploading(false)
 		}
 	}
 
@@ -86,8 +109,19 @@ export default function AdminPostNewPage() {
 				</label>
 
 				<label className="post-editor__field">
-					<span>サムネイルURL</span>
-					<input value={form.thumbnail_url} onChange={(event) => setForm((current) => ({ ...current, thumbnail_url: event.target.value }))} />
+					<span>サムネイル (画像ファイルを選択 または URL)</span>
+					<div className="post-editor__upload-row">
+						<label className="post-editor__upload-button">
+							<ImagePlus size={16} aria-hidden="true" />
+							<span>{file ? '画像を変更' : '画像を挿入'}</span>
+							<input className="post-editor__file-input" type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+						</label>
+						{file && <span className="post-editor__file-name">{file.name}</span>}
+					</div>
+					<input placeholder="または画像URLを直接入力" value={form.thumbnail_url} onChange={(event) => setForm((current) => ({ ...current, thumbnail_url: event.target.value }))} />
+					{(filePreviewUrl || form.thumbnail_url.trim()) && (
+						<img className="post-editor__thumbnail-preview" src={filePreviewUrl ?? form.thumbnail_url.trim()} alt="サムネイルプレビュー" />
+					)}
 				</label>
 
 				<label className="post-editor__field">
@@ -105,8 +139,8 @@ export default function AdminPostNewPage() {
 				</label>
 
 				<div className="post-editor__status">
-					<button type="submit" className="post-editor__submit" disabled={createPost.isPending}>
-						{createPost.isPending ? '作成中…' : '作成する'}
+					<button type="submit" className="post-editor__submit" disabled={isUploading}>
+						{isUploading ? '作成中…' : '作成する'}
 					</button>
 					{errorMessage && <p role="alert" className="post-editor__hint">{errorMessage}</p>}
 				</div>

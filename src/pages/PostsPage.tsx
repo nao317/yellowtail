@@ -8,12 +8,13 @@ type Post = {
   content?: string
   created_at?: string
   slug?: string
+  thumbnail_url?: string | null
 }
 
 async function fetchPosts(): Promise<Post[]> {
   const { data, error, status, statusText } = await supabase
     .from('posts')
-    .select('id, title, content, created_at, slug')
+    .select('id, title, content, created_at, slug, thumbnail_url')
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -26,7 +27,7 @@ async function fetchPosts(): Promise<Post[]> {
     if (status === 400) {
       // eslint-disable-next-line no-console
       console.warn('[supabase.posts] retrying without order due to 400')
-      const retry = await supabase.from('posts').select('id, title, content, created_at, slug')
+      const retry = await supabase.from('posts').select('id, title, content, created_at, slug, thumbnail_url')
       if (retry.error) {
         console.error('[supabase.posts] retry error', { retry })
         const msg = `${retry.error.message || 'Unknown error'} (status=${retry.status})`
@@ -60,6 +61,11 @@ export default function PostsPage() {
                 <li key={p.id}>
                   <section className="profile-card">
                     <div className="profile-card-content">
+                      {p.thumbnail_url && (
+                        <Link className="posts-list__thumb-link" to={`/posts/${encodeURIComponent(p.slug ?? p.id)}`}>
+                          <img className="posts-list__thumb" src={p.thumbnail_url} alt={`${p.title} のサムネイル`} loading="lazy" />
+                        </Link>
+                      )}
                       <h2 style={{ margin: 0 }}>
                         <Link to={`/posts/${encodeURIComponent(p.slug ?? p.id)}`}>{p.title}</Link>
                       </h2>

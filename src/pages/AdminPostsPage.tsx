@@ -22,6 +22,18 @@ export default function AdminPostsPage() {
 		queryFn: fetchAdminPosts,
 	})
 
+	const deletePost = async (id: string) => {
+		if (!window.confirm('この投稿を削除してもよろしいですか？この操作は取り消せません。')) return
+
+		const { error } = await supabase.from('posts').delete().eq('id', id)
+		if (error) {
+			alert('削除に失敗しました: ' + error.message)
+			return
+		}
+
+		void refetch()
+	}
+
 	return (
 		<section className="admin-posts">
 			{isLoading && <p>投稿を読み込み中です…</p>}
@@ -49,8 +61,8 @@ export default function AdminPostsPage() {
 						<Link to={`/posts/${encodeURIComponent(post.slug ?? post.id)}`} className="admin-posts__link">
 							公開ページ
 						</Link>
-						<button type="button" className="admin-posts__link admin-posts__danger" onClick={() => void refetch()}>
-							更新
+						<button type="button" className="admin-posts__link admin-posts__danger" onClick={() => void deletePost(post.id)}>
+							削除
 						</button>
 					</div>
 				</article>

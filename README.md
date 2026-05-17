@@ -71,6 +71,64 @@ React + Supabase で実装する前提の初期設計書です。
 - profiles は本人参照のみ許可、role更新は service role 経由のみ
 - service role key はバックエンド処理専用とし、フロントには渡さない
 
+### 5.1 Storage (posts バケット) のRLS設定
+
+画像アップロードをフロントエンドから実行する場合、Storage の `posts` バケットに対して
+`storage.objects` のポリシーが必要です。未設定だと以下のエラーになります。
+
+- `new row violates row-level security policy`
+
+Supabase SQL Editor で以下を実行してください。
+
+```sql
+-- posts バケットの存在確認
+select id, name, public from storage.buckets where id = 'posts';
+
+-- 公開URLで画像を表示する場合は public = true にする
+update storage.buckets
+set public = true
+where id = 'posts';
+
+-- 認証済みユーザーの読み取りを許可
+create policy "posts_read_authenticated"
+on storage.objects for select
+to authenticated
+using (bucket_id = 'posts');
+
+-- 管理者メールのみアップロードを許可
+create policy "posts_insert_admin_only"
+on storage.objects for insert
+to authenticated
+with check (
+  bucket_id = 'posts'
+  and (auth.jwt() ->> 'email') = 'country.gentleman.0317@gmail.com'
+);
+
+-- 管理者メールのみ更新を許可（任意）
+create policy "posts_update_admin_only"
+on storage.objects for update
+to authenticated
+using (
+  bucket_id = 'posts'
+  and (auth.jwt() ->> 'email') = 'country.gentleman.0317@gmail.com'
+)
+with check (
+  bucket_id = 'posts'
+  and (auth.jwt() ->> 'email') = 'country.gentleman.0317@gmail.com'
+);
+
+-- 管理者メールのみ削除を許可（任意）
+create policy "posts_delete_admin_only"
+on storage.objects for delete
+to authenticated
+using (
+  bucket_id = 'posts'
+  and (auth.jwt() ->> 'email') = 'country.gentleman.0317@gmail.com'
+);
+```
+
+既に同名ポリシーがある場合は、先に drop してから create してください。
+
 ### 6. データモデル（最小）
 
 - profiles

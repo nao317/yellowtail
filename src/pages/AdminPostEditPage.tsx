@@ -80,7 +80,12 @@ export default function AdminPostEditPage() {
     const bucket = 'posts'
     const path = `posts/${id}/${Date.now()}_${file.name}`
     const { error } = await supabase.storage.from(bucket).upload(path, file)
-    if (error) throw error
+    if (error) {
+      if (error.message.includes('row-level security policy')) {
+        throw new Error('画像アップロードに失敗しました。Supabase Storage の posts バケットで INSERT ポリシーを設定してください。')
+      }
+      throw error
+    }
     const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path)
     return urlData.publicUrl
   }
@@ -94,11 +99,7 @@ export default function AdminPostEditPage() {
     try {
       let thumbnail = form.thumbnail_url.trim() || null
       if (file && id) {
-        try {
-          thumbnail = await uploadFileForPost(id, file)
-        } catch (err) {
-          console.error('upload error', err)
-        }
+        thumbnail = await uploadFileForPost(id, file)
       }
 
       await updatePost.mutateAsync({ ...form, thumbnail_url: thumbnail ?? '' })

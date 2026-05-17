@@ -37,6 +37,9 @@ export default function AdminPostNewPage() {
 		const path = `posts/${id}/${Date.now()}_${file.name}`
 		const { error } = await supabase.storage.from(bucket).upload(path, file)
 		if (error) {
+			if (error.message.includes('row-level security policy')) {
+				throw new Error('画像アップロードに失敗しました。Supabase Storage の posts バケットで INSERT ポリシーを設定してください。')
+			}
 			throw error
 		}
 		const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path)
@@ -55,12 +58,7 @@ export default function AdminPostNewPage() {
 		try {
 			let thumbnail: string | null = form.thumbnail_url.trim() || null
 			if (file) {
-				try {
-					thumbnail = await uploadFileForPost(id, file)
-				} catch (uploadErr) {
-					console.error('upload error', uploadErr)
-					// fallback to manual URL if provided
-				}
+				thumbnail = await uploadFileForPost(id, file)
 			}
 
 			const payload = {

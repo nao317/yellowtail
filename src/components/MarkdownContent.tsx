@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
+import rehypeHighlight from 'rehype-highlight'
+import 'highlight.js/styles/github.css'
 import 'katex/dist/katex.min.css'
 
 type Props = {
@@ -147,12 +150,12 @@ export default function MarkdownContent({ content, className, preview = false }:
       )}
 
       <div className={['markdown-content', preview ? 'markdown-content--preview' : '', className].filter(Boolean).join(' ')} data-truncated={isPreviewTruncated ? 'true' : 'false'}>
-        <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]} components={components}>
+        <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex, (rehypeHighlight as any)]} components={components}>
           {displayContent}
         </ReactMarkdown>
       </div>
 
-      {activeImage && (
+      {activeImage && (typeof document !== 'undefined' ? createPortal(
         <div className="markdown-content__overlay" role="presentation" onClick={() => setActiveImage(null)}>
           {images.length > 1 && (
             <>
@@ -194,8 +197,7 @@ export default function MarkdownContent({ content, className, preview = false }:
             alt={activeImage.alt}
             onClick={(event) => event.stopPropagation()}
           />
-        </div>
-      )}
+        </div>, document.body) : null)}
     </>
   )
 }

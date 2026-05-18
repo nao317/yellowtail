@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase/client'
 import { Link } from 'react-router-dom'
+import MarkdownContent from '../components/MarkdownContent'
 
 type Post = {
   id: string
@@ -66,10 +67,14 @@ export default function PostsPage() {
                           <img className="posts-list__thumb" src={p.thumbnail_url} alt={`${p.title} のサムネイル`} loading="lazy" />
                         </Link>
                       )}
-                      <h2 style={{ margin: 0 }}>
+                      <h2 className="posts-list__title">
                         <Link to={`/posts/${encodeURIComponent(p.slug ?? p.id)}`}>{p.title}</Link>
                       </h2>
-                      {p.content && <p style={{ margin: '8px 0 0' }}>{p.content}</p>}
+                      {p.content && (
+                        <div className="posts-list__preview">
+                          <MarkdownContent content={p.content} preview />
+                        </div>
+                      )}
                       {p.created_at && <small style={{ color: 'var(--text)', display: 'block', marginTop: 8 }}>{new Date(p.created_at).toLocaleString()}</small>}
                     </div>
                   </section>

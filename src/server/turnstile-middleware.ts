@@ -1,5 +1,6 @@
 import { verifyTurnstileToken } from '../lib/turnstile'
 import { createServerToken, validateAndConsumeServerToken } from './turnstile-store'
+import { isLocalHostName } from '../shared/lib/host'
 
 function parseCookie(header?: string) {
   if (!header) return {}
@@ -13,6 +14,8 @@ function parseCookie(header?: string) {
 
 // Express-compatible middleware (keeps types `any` to avoid devDependency on @types/express)
 export function expressTurnstileMiddleware(req: any, res: any, next: any) {
+  if (isLocalHostName(req.headers?.host)) return next()
+
   const cookies = parseCookie(req.headers?.cookie)
   const serverToken = cookies?.turnstile_verified
   if (serverToken) {
@@ -42,7 +45,9 @@ export function expressTurnstileMiddleware(req: any, res: any, next: any) {
 }
 
 // Generic helper for serverless frameworks: throws if invalid. Accepts either server token or CF token.
-export async function requireTurnstile(providedToken?: string, cookieHeader?: string) {
+export async function requireTurnstile(providedToken?: string, cookieHeader?: string, hostHeader?: string) {
+  if (isLocalHostName(hostHeader)) return true
+
   const cookies = parseCookie(cookieHeader)
   const serverToken = cookies?.turnstile_verified
   if (serverToken && validateAndConsumeServerToken(serverToken)) return true

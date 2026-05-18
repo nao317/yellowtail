@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase/client'
 import Turnstile from './ui/turnstile'
 import { env } from '../shared/lib/env'
 import { hasTurnstileClientVerified } from '../shared/lib/turnstile-session'
+import { isLocalHostName } from '../shared/lib/host'
 import './ContactForm.css'
 
 type ContactFormProps = {
@@ -16,8 +17,7 @@ export default function ContactForm({ plain = false }: ContactFormProps) {
     const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
     const [errorMsg, setErrorMsg] = useState<string | null>(null)
     const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
-    const hostname = window.location.hostname
-    const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.local')
+    const isLocalHost = isLocalHostName(window.location.hostname)
     const requiresTurnstile = Boolean(env.turnstileEnabled && env.turnstileSiteKey && !isLocalHost && !hasTurnstileClientVerified())
 
     async function handleSubmit(e: React.FormEvent) {

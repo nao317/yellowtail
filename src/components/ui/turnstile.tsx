@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { env } from '../../shared/lib/env'
+import { isLocalHostName } from '../../shared/lib/host'
 
 type Props = {
   onVerify: (token: string) => void
@@ -14,8 +15,7 @@ export default function Turnstile({ onVerify }: Props) {
 
   useEffect(() => {
     const sitekey = env.turnstileSiteKey
-    const hostname = window.location.hostname
-    const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.local')
+    const isLocalHost = isLocalHostName(window.location.hostname)
     if (!env.turnstileEnabled || !sitekey || isLocalHost) return
 
     const turnstile = (window as any).turnstile

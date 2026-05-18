@@ -1,6 +1,8 @@
+import { useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase/client'
+import MarkdownContent from '../components/MarkdownContent'
 
 export default function PostDetailPage() {
   const { slug } = useParams()
@@ -21,6 +23,13 @@ export default function PostDetailPage() {
   }
 
   const { data: post, isLoading, isError } = useQuery({ queryKey: ['post', slug], queryFn: fetchPost, enabled: !!slug })
+  const markdownContent = useMemo(() => {
+    if (!post) return ''
+
+    return [post.thumbnail_url ? `![${post.title}](${post.thumbnail_url})` : '', post.content ?? '']
+      .filter(Boolean)
+      .join('\n\n')
+  }, [post])
 
   if (isLoading) return <div>Loading…</div>
   if (isError) return <div>投稿の読み込みでエラーが発生しました。</div>
@@ -36,10 +45,11 @@ export default function PostDetailPage() {
         </p>
         <section className="profile-card">
           <div className="profile-card-content">
-            <h1 style={{ marginTop: 0 }}>{post.title}</h1>
-            {post.thumbnail_url && <img src={post.thumbnail_url} alt={post.title} style={{ maxWidth: '100%', borderRadius: 6 }} />}
-            <div style={{ marginTop: 16 }}>{post.content}</div>
-            <footer style={{ marginTop: 16, color: 'var(--text-muted)' }}>{post.created_at && new Date(post.created_at).toLocaleString()}</footer>
+            <h1 className="post-detail__title">{post.title}</h1>
+            <div style={{ marginTop: 24 }}>
+              <MarkdownContent content={markdownContent} className="post-detail__markdown" />
+            </div>
+            <footer style={{ marginTop: 24, color: 'var(--text-muted)' }}>{post.created_at && new Date(post.created_at).toLocaleString()}</footer>
           </div>
         </section>
       </div>

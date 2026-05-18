@@ -230,7 +230,9 @@
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.6);
-  z-index: 60;
+  z-index: 99999;
+  padding: 32px;
+  box-sizing: border-box;
 }
 
 .markdown-content__overlay-prev,
@@ -248,7 +250,7 @@
   justify-content: center;
   cursor: pointer;
   color: #fff;
-  z-index: 70;
+  z-index: 100000;
 }
 
 .markdown-content__overlay-prev { left: 16px }
@@ -259,7 +261,9 @@
   max-height: 90vh;
   object-fit: contain;
   border-radius: 8px;
-  margin: 0 64px;
+  margin: 0 auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  background: #000;
 }
 
 .profile-grid div {

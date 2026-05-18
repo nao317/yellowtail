@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
@@ -18,12 +18,33 @@ type ActiveImage = {
 
 const PREVIEW_CHAR_LIMIT = 300
 
+function extractImagesFromMarkdown(text: string) {
+  const images: ActiveImage[] = []
+  const cleaned = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_m, alt, src) => {
+    images.push({ src, alt: alt || '画像' })
+    return ''
+  })
+  return { images, cleaned: cleaned.trim() }
+}
+
 export default function MarkdownContent({ content, className, preview = false }: Props) {
-  const displayContent = preview && content.length > PREVIEW_CHAR_LIMIT
-    ? content.slice(0, PREVIEW_CHAR_LIMIT) + ' ...'
-    : content
-  const isPreviewTruncated = preview && content.length > PREVIEW_CHAR_LIMIT
+  const { images, cleaned } = useMemo(() => extractImagesFromMarkdown(content), [content])
+  const displayContent = preview && cleaned.length > PREVIEW_CHAR_LIMIT
+    ? cleaned.slice(0, PREVIEW_CHAR_LIMIT) + ' ...'
+    : cleaned
+  const isPreviewTruncated = preview && cleaned.length > PREVIEW_CHAR_LIMIT
   const [activeImage, setActiveImage] = useState<ActiveImage | null>(null)
+  const trackRef = useRef<HTMLDivElement | null>(null)
+
+  const getActiveIndex = () => (activeImage ? images.findIndex((i) => i.src === activeImage.src) : -1)
+  const showPrev = () => {
+    const idx = getActiveIndex()
+    if (idx > 0) setActiveImage(images[idx - 1])
+  }
+  const showNext = () => {
+    const idx = getActiveIndex()
+    if (idx >= 0 && idx < images.length - 1) setActiveImage(images[idx + 1])
+  }
 
   useEffect(() => {
     if (!activeImage) return
@@ -43,7 +64,7 @@ export default function MarkdownContent({ content, className, preview = false }:
 
         const imageAlt = alt || '画像'
         if (preview) {
-          return <img className="markdown-content__image markdown-content__image--preview" src={src} alt={imageAlt} loading="lazy" {...props} />
+          return <img className="markdown-content__image markdown-content__image--preview" src={src} alt={imageAlt} loading="lazy" {...props} onClick={() => setActiveImage({ src, alt: imageAlt })} />
         }
 
         return (
@@ -88,14 +109,76 @@ export default function MarkdownContent({ content, className, preview = false }:
 
   return (
     <>
+      {preview && images.length > 0 && (
+        <div className="markdown-carousel">
+          <button
+            type="button"
+            className="markdown-carousel__prev"
+            aria-label="前の画像"
+            onClick={() => {
+              if (!trackRef.current) return
+              trackRef.current.scrollBy({ left: -trackRef.current.clientWidth, behavior: 'smooth' })
+            }}
+          >
+            {'<'}
+          </button>
+
+          <div className="markdown-carousel__track" ref={trackRef}>
+            {images.map((img) => (
+              <div key={img.src} className="markdown-carousel__item">
+                <img src={img.src} alt={img.alt} className="markdown-carousel__img" onClick={() => setActiveImage(img)} />
+              </div>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            className="markdown-carousel__next"
+            aria-label="次の画像"
+            onClick={() => {
+              if (!trackRef.current) return
+              trackRef.current.scrollBy({ left: trackRef.current.clientWidth, behavior: 'smooth' })
+            }}
+          >
+            {'>'}
+          </button>
+        </div>
+      )}
+
       <div className={['markdown-content', preview ? 'markdown-content--preview' : '', className].filter(Boolean).join(' ')} data-truncated={isPreviewTruncated ? 'true' : 'false'}>
         <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]} components={components}>
           {displayContent}
         </ReactMarkdown>
       </div>
 
-      {activeImage && !preview && (
+      {activeImage && (
         <div className="markdown-content__overlay" role="presentation" onClick={() => setActiveImage(null)}>
+          {images.length > 1 && (
+            <>
+              <button
+                type="button"
+                className="markdown-content__overlay-prev"
+                aria-label="前の画像"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  showPrev()
+                }}
+              >
+                {'<'}
+              </button>
+              <button
+                type="button"
+                className="markdown-content__overlay-next"
+                aria-label="次の画像"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  showNext()
+                }}
+              >
+                {'>'}
+              </button>
+            </>
+          )}
           <button
             type="button"
             className="markdown-content__close"

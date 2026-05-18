@@ -29,9 +29,10 @@ function extractImagesFromMarkdown(text: string) {
 
 export default function MarkdownContent({ content, className, preview = false }: Props) {
   const { images, cleaned } = useMemo(() => extractImagesFromMarkdown(content), [content])
-  const displayContent = preview && cleaned.length > PREVIEW_CHAR_LIMIT
-    ? cleaned.slice(0, PREVIEW_CHAR_LIMIT) + ' ...'
-    : cleaned
+  // keep images in detail view; only remove images from displayed text in preview mode
+  const displayContent = preview
+    ? (cleaned.length > PREVIEW_CHAR_LIMIT ? cleaned.slice(0, PREVIEW_CHAR_LIMIT) + ' ...' : cleaned)
+    : content
   const isPreviewTruncated = preview && cleaned.length > PREVIEW_CHAR_LIMIT
   const [activeImage, setActiveImage] = useState<ActiveImage | null>(null)
   const trackRef = useRef<HTMLDivElement | null>(null)

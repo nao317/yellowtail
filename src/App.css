@@ -216,6 +216,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  color: #fff;
   z-index: 2;
 }
 
@@ -246,6 +247,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  color: #fff;
   z-index: 70;
 }
 
@@ -257,6 +259,7 @@
   max-height: 90vh;
   object-fit: contain;
   border-radius: 8px;
+  margin: 0 64px;
 }
 
 .profile-grid div {

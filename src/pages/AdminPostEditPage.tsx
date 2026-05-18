@@ -19,8 +19,10 @@ export default function AdminPostEditPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [form, setForm] = useState<PostFormValues | null>(null)
   const [file, setFile] = useState<File | null>(null)
+  const [attachmentFiles, setAttachmentFiles] = useState<File[]>([])
   const [isUploading, setIsUploading] = useState(false)
-  const filePreviewUrl = useMemo(() => (file ? URL.createObjectURL(file) : null), [file])
+  const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null)
+  const [attachmentPreviewUrls, setAttachmentPreviewUrls] = useState<Array<{ file: File; url: string }>>([])
 
   const fetchPost = async (): Promise<Post | null> => {
     if (!id) return null
@@ -51,10 +53,28 @@ export default function AdminPostEditPage() {
   }, [initialForm])
 
   useEffect(() => {
-    return () => {
-      if (filePreviewUrl) URL.revokeObjectURL(filePreviewUrl)
+    if (!file) {
+      setFilePreviewUrl(null)
+      return
     }
-  }, [filePreviewUrl])
+
+    const previewUrl = URL.createObjectURL(file)
+    setFilePreviewUrl(previewUrl)
+    return () => URL.revokeObjectURL(previewUrl)
+  }, [file])
+
+  useEffect(() => {
+    if (attachmentFiles.length === 0) {
+      setAttachmentPreviewUrls([])
+      return
+    }
+
+    const previewUrls = attachmentFiles.map((attachmentFile) => ({ file: attachmentFile, url: URL.createObjectURL(attachmentFile) }))
+    setAttachmentPreviewUrls(previewUrls)
+    return () => {
+      previewUrls.forEach(({ url }) => URL.revokeObjectURL(url))
+    }
+  }, [attachmentFiles])
 
   const updatePost = useMutation({
     mutationFn: async (values: PostFormValues) => {
@@ -85,6 +105,10 @@ export default function AdminPostEditPage() {
     return urlData.publicUrl
   }
 
+  async function uploadFilesForPost(id: string, files: File[]) {
+    return Promise.all(files.map(async (attachmentFile) => ({ file: attachmentFile, url: await uploadFileForPost(id, attachmentFile) })))
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setErrorMessage(null)
@@ -93,6 +117,7 @@ export default function AdminPostEditPage() {
     setIsUploading(true)
     try {
       let thumbnail = form.thumbnail_url.trim() || null
+      let content = form.content.trim()
       if (file && id) {
         try {
           thumbnail = await uploadFileForPost(id, file)
@@ -101,7 +126,14 @@ export default function AdminPostEditPage() {
         }
       }
 
-      await updatePost.mutateAsync({ ...form, thumbnail_url: thumbnail ?? '' })
+      if (attachmentFiles.length > 0 && id) {
+        const uploadedAttachments = await uploadFilesForPost(id, attachmentFiles)
+        content = [content, ...uploadedAttachments.map(({ url }, index) => `![添付画像 ${index + 1}](${url})`)]
+          .filter(Boolean)
+          .join('\n\n')
+      }
+
+      await updatePost.mutateAsync({ ...form, content, thumbnail_url: thumbnail ?? '' })
     } catch (submitError) {
       setErrorMessage((submitError as Error).message)
     } finally {
@@ -157,6 +189,28 @@ export default function AdminPostEditPage() {
           {(filePreviewUrl || form.thumbnail_url.trim()) && (
             <img className="post-editor__thumbnail-preview" src={filePreviewUrl ?? form.thumbnail_url.trim()} alt="サムネイルプレビュー" />
           )}
+        </label>
+
+        <label className="post-editor__field">
+          <span>添付画像 (複数可)</span>
+          <div className="post-editor__upload-row">
+            <label className="post-editor__upload-button">
+              <ImagePlus size={16} aria-hidden="true" />
+              <span>{attachmentFiles.length > 0 ? `${attachmentFiles.length}枚選択中` : '画像を複数選択'}</span>
+              <input className="post-editor__file-input" type="file" accept="image/*" multiple onChange={(e) => setAttachmentFiles(Array.from(e.target.files ?? []))} />
+            </label>
+          </div>
+          {attachmentPreviewUrls.length > 0 && (
+            <div className="post-editor__attachment-preview-grid">
+              {attachmentPreviewUrls.map(({ file: attachmentFile, url }) => (
+                <div key={`${attachmentFile.name}-${attachmentFile.lastModified}`} className="post-editor__attachment-preview-item">
+                  <img className="post-editor__attachment-preview-image" src={url} alt={attachmentFile.name} />
+                  <span>{attachmentFile.name}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <p className="post-editor__hint">保存すると本文の末尾に Markdown 画像として追加されます。</p>
         </label>
 
         <label className="post-editor__field">

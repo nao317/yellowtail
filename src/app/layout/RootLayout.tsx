@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import Header from '../../components/Header'
 import { env } from '../../shared/lib/env'
 import { hasTurnstileClientVerified } from '../../shared/lib/turnstile-session'
+import { isLocalHostName } from '../../shared/lib/host'
 
 export default function RootLayout() {
     const navigate = useNavigate()
@@ -11,6 +12,8 @@ export default function RootLayout() {
     useEffect(() => {
         const requires = Boolean(env.turnstileSiteKey)
         if (!requires) return
+
+        if (isLocalHostName(window.location.hostname)) return
 
         if (!hasTurnstileClientVerified() && location.pathname !== '/challenge') {
             const next = encodeURIComponent(location.pathname + location.search)

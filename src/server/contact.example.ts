@@ -7,7 +7,7 @@ export async function contactHandler(req: any, res: any) {
   if (!name || !email || !message) return res.status(400).json({ success: false, error: 'missing fields' })
 
   try {
-    await requireTurnstile(token, req.headers?.cookie)
+    await requireTurnstile(token, req.headers?.cookie, req.headers?.host)
   } catch (err) {
     return res.status(403).json({ success: false, error: 'turnstile verification failed' })
   }

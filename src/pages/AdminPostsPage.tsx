@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import type { Post } from '../features/posts/type'
 import { supabase } from '../lib/supabase/client'
+import MarkdownContent from '../components/MarkdownContent'
 
 async function fetchAdminPosts(): Promise<Post[]> {
 	const { data, error } = await supabase
@@ -44,7 +45,7 @@ export default function AdminPostsPage() {
 			{!isLoading && !isError && posts && posts.length > 0 && posts.map((post) => (
 				<article key={post.id} className="admin-posts__item">
 					<header>
-						<h2 style={{ margin: 0 }}>{post.title}</h2>
+						<h2 className="admin-posts__title">{post.title}</h2>
 						<div className="admin-posts__meta">
 							<span>{post.slug ?? post.id}</span>
 							<span>{post.is_published ? '公開中' : '下書き'}</span>
@@ -52,7 +53,11 @@ export default function AdminPostsPage() {
 						</div>
 					</header>
 
-					{post.excerpt && <p>{post.excerpt}</p>}
+					{(post.excerpt || post.content) && (
+						<div className="admin-posts__preview">
+							<MarkdownContent content={post.excerpt ?? post.content ?? ''} preview />
+						</div>
+					)}
 
 					<div className="admin-posts__actions">
 						<Link to={`/admin/posts/${post.id}/edit`} className="admin-posts__link">
